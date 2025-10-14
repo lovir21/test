@@ -1,16 +1,26 @@
 #include <iostream>
 int main()
 {
-	int x, y, z;
-	std::cin >> x >> y >> z;
-	if (x > y and x > z) {
-		std::cout << x;
+	int day, month, year;
+	std::cout << "Podaj date: ";
+	std::cin >> day >> month >> year;
+
+	if (year > 2007) 
+	{
+		std::cout << "Jestes niepelnoletni";
 	}
-	else if (y > x and y > z) {
-		std::cout << y;
+	else if (year == 2007) 
+	{
+		if (month < 10 || (month == 10 and day <= 14)) {
+			std::cout << "jestes pelnoletni";
+		}
+		else {
+			std::cout << "jestes niepelnoletni";
+		}
+		
 	}
 	else {
-		std::cout << z;
+		std::cout << "jestes pelnoletni";
 	}
 }
 
@@ -23,4 +33,15 @@ int main()
 	else
 	{
 		std::cout << y;
+	}*/
+	/*int x, y, z;
+	std::cin >> x >> y >> z;
+	if (x > y and x > z) {
+		std::cout << x;
+	}
+	else if (y > x and y > z) {
+		std::cout << y;
+	}
+	else {
+		std::cout << z;
 	}*/
