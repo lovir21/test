@@ -1,0 +1,159 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <ctime>
+
+using namespace std;
+
+// ------------------ STRUKTURY ------------------
+
+struct Book {
+    int id;
+    string title;
+    string author;
+    int year;
+    int quantity;
+};
+
+struct Reader {
+    int id;
+    string name;
+    string surname;
+    string cardNumber;
+};
+
+struct Loan {
+    int bookId;
+    int readerId;
+    string dueDate;
+    bool returned;
+};
+
+// ------------------ FUNKCJE POMOCNICZE ------------------
+
+string currentDate() {
+    time_t t = time(nullptr);
+    tm* now = localtime(&t);
+    char buf[11];
+    strftime(buf, sizeof(buf), "%Y-%m-%d", now);
+    return buf;
+}
+
+// ------------------ FUNKCJE LOGICZNE ------------------
+
+void addBook(vector<Book>& books) {
+    Book b;
+    cout << "ID: "; cin >> b.id;
+    cin.ignore();
+    cout << "Tytul: "; getline(cin, b.title);
+    cout << "Autor: "; getline(cin, b.author);
+    cout << "Rok: "; cin >> b.year;
+    cout << "Ilosc: "; cin >> b.quantity;
+
+    books.push_back(b);
+}
+
+void addReader(vector<Reader>& readers) {
+    Reader r;
+    cout << "ID: "; cin >> r.id;
+    cin.ignore();
+    cout << "Imie: "; getline(cin, r.name);
+    cout << "Nazwisko: "; getline(cin, r.surname);
+    cout << "Nr karty: "; getline(cin, r.cardNumber);
+
+    readers.push_back(r);
+}
+
+void borrowBook(vector<Book>& books, vector<Loan>& loans) {
+    int bookId, readerId;
+    cout << "ID ksiazki: "; cin >> bookId;
+    cout << "ID czytelnika: "; cin >> readerId;
+
+    for (auto& b : books) {
+        if (b.id == bookId && b.quantity > 0) {
+            time_t t = time(nullptr) + 14 * 24 * 3600;
+            tm* due = localtime(&t);
+            char buf[11];
+            strftime(buf, sizeof(buf), "%Y-%m-%d", due);
+
+            loans.push_back({bookId, readerId, buf, false});
+            b.quantity--;
+            cout << "Wypozyczono do: " << buf << endl;
+            return;
+        }
+    }
+    cout << "Brak egzemplarzy lub nie ma ksiazki.\n";
+}
+
+void returnBook(vector<Book>& books, vector<Loan>& loans) {
+    int bookId, readerId;
+    cout << "ID ksiazki: "; cin >> bookId;
+    cout << "ID czytelnika: "; cin >> readerId;
+
+    for (auto& l : loans) {
+        if (l.bookId == bookId && l.readerId == readerId && !l.returned) {
+            l.returned = true;
+            for (auto& b : books)
+                if (b.id == bookId) b.quantity++;
+            cout << "Zwrot przyjety.\n";
+            return;
+        }
+    }
+    cout << "Nie znaleziono wypozyczenia.\n";
+}
+
+void showLoans(const vector<Loan>& loans) {
+    for (const auto& l : loans) {
+        cout << "Ksiazka ID: " << l.bookId
+             << " Czytelnik ID: " << l.readerId
+             << " Termin: " << l.dueDate
+             << " Status: " << (l.returned ? "OK" : "W TRAKCIE") << endl;
+    }
+}
+
+void overdueReport(const vector<Loan>& loans) {
+    string today = currentDate();
+    for (const auto& l : loans) {
+        if (!l.returned && l.dueDate < today) {
+            cout << "ZALEGLA: ksiazka " << l.bookId
+                 << ", czytelnik " << l.readerId << endl;
+        }
+    }
+}
+
+void saveBooks(const vector<Book>& books) {
+    ofstream f("books.csv");
+    for (const auto& b : books)
+        f << b.id << "," << b.title << "," << b.author << ","
+          << b.year << "," << b.quantity << "\n";
+}
+
+// ------------------ MAIN ------------------
+
+int main() {
+    vector<Book> books;
+    vector<Reader> readers;
+    vector<Loan> loans;
+
+    int choice;
+    do {
+        cout << "\n1.Dodaj ksiazke\n2.Dodaj czytelnika\n3.Wypozycz\n4.Zwroc\n"
+                "5.Wyswietl wypozyczenia\n6.Zalegle\n7.Zapisz\n8.Wyjdz\n";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: addBook(books); break;
+            case 2: addReader(readers); break;
+            case 3: borrowBook(books, loans); break;
+            case 4: returnBook(books, loans); break;
+            case 5: showLoans(loans); break;
+            case 6: overdueReport(loans); break;
+            case 7: saveBooks(books); break;
+        }
+    } while (choice != 8);
+
+    return 0;
+}
+
